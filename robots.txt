@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://pet.goods-infinite.com/sitemap.xml
