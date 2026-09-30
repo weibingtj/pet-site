@@ -1,3 +1,24 @@
 User-agent: *
 Allow: /
+
+# Generative-AI crawlers — allowed so content can be cited in AI answers (GEO)
+User-agent: GPTBot
+Allow: /
+User-agent: ClaudeBot
+Allow: /
+User-agent: Google-Extended
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+User-agent: Applebot
+Allow: /
+User-agent: omgili
+Allow: /
+User-agent: omgilibot
+Allow: /
+User-agent: Bytespider
+Allow: /
+User-agent: DataForSeoBot
+Allow: /
+
 Sitemap: https://pet.goods-infinite.com/sitemap.xml
