@@ -24,7 +24,13 @@
 - [Moving With a Cat: A Vet-Informed Stress-Reduction Plan](https://pet.goods-infinite.com/insights/moving-with-a-cat-stress-plan/): Cats read the world through scent and territory. A practical, evidence-minded plan to cut moving-day anxiety — before, during and after the move.
 - [Why Do Dogs Get Tear Stains — and What Actually Helps?](https://pet.goods-infinite.com/insights/why-dog-tear-stains/): The science behind reddish under-eye stains in dogs, which breeds are prone, a safe daily routine, and the red flags that mean it's time for the vet.
 
+## Trust & editorial
+- [About GoodsInfinite Pet](https://pet.goods-infinite.com/about/): who we are, what we do, and how our content is produced.
+- [Medical & Editorial Review Policy](https://pet.goods-infinite.com/medical-review/): sourcing standards (AAHA, VCA, AKC, AVMA, FDA/CVM), our reviewer model, and the "not a diagnosis" boundary. Articles carry a `reviewedBy` node in schema.org structured data.
+- [Contact](https://pet.goods-infinite.com/contact/): corrections, sourcing questions, and partnership inquiries (pets@goods-infinite.com).
+
 ## Key facts
 - ~40 curated dog & cat care products, price band $5–$19.
 - Every guide includes a "when to see a vet" boundary.
+- Content is educational only and not veterinary advice; it does not replace a licensed veterinarian.
 - Orders are completed on TikTok Shop (US); this site is the content layer.
