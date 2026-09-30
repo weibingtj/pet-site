@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>pet.goods-infinite.com · Cloudflare/GSC/Bing/IndexNow 实操手册</title>
+<title>pet.goods-infinite.com · Cloudflare/GSC/Bing/IndexNow 实操手册（免费版）</title>
 <style>
   :root{
     --teal:#0e8f8b; --teal-d:#0a6b68; --coral:#ff7a59; --ink:#1d2b2a;
-    --bg:#f6f4ef; --card:#fff; --line:#e3ded4; --mut:#6b7a78; --ok:#1f9d55; --warn:#c8761a;
+    --bg:#f6f4ef; --card:#fff; --line:#e3ded4; --mut:#6b7a78; --ok:#1f9d55; --warn:#c8761a; --red:#c0392b;
   }
   *{box-sizing:border-box}
   body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.65}
@@ -16,6 +16,9 @@
   header p{margin:0;opacity:.92;font-size:14px}
   .wrap{max-width:980px;margin:0 auto;padding:24px 18px 60px}
   .banner{background:#fff7ed;border:1px solid #f3d9bf;color:#8a4b12;padding:14px 16px;border-radius:10px;margin:18px 0;font-size:14px}
+  .plan{background:#eef6f5;border:1px solid #cfe7e4;color:#0a6b68;padding:14px 16px;border-radius:10px;margin:18px 0;font-size:14px}
+  .plan b{color:var(--teal-d)}
+  .plan .no{color:var(--red);font-weight:700}
   .mod{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:18px 0;overflow:hidden}
   .mod h2{margin:0;background:#eef6f5;padding:14px 18px;font-size:17px;color:var(--teal-d);border-bottom:1px solid var(--line)}
   .mod .body{padding:8px 18px 18px}
@@ -29,61 +32,59 @@
   .t-ok{background:#e7f6ee;color:var(--ok)} .t-warn{background:#fdf0e0;color:var(--warn)}
   .verify{background:#06303a;color:#7fe3d8;padding:12px 14px;border-radius:8px;font-family:ui-monospace,monospace;font-size:13px;white-space:pre-wrap;margin:10px 0}
   .note{font-size:13px;color:var(--mut);margin:6px 0 0}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+  .danger{background:#fdecea;border:1px solid #f5c6c0;color:#a5281b;padding:12px 14px;border-radius:8px;margin:10px 0;font-size:13px}
   .done{margin-top:26px;background:#e7f6ee;border:1px solid #bfe6cd;color:#1f6b3f;padding:16px;border-radius:12px}
   .done h3{margin:0 0 8px}
 </style>
 </head>
 <body>
 <header>
-  <h1>🛠️ pet.goods-infinite.com · SEO/GEO 部署实操手册</h1>
-  <p>Cloudflare 放行爬虫 · 独立 GA4 · GSC 独立属性 · Bing WM · IndexNow — 分步可照做</p>
+  <h1>🛠️ pet.goods-infinite.com · SEO/GEO 部署实操手册（Cloudflare 免费版）</h1>
+  <p>关掉误伤爬虫的 Bot Fight Mode · WAF Allow 规则放行 · 独立 GA4 · GSC · Bing/IndexNow</p>
 </header>
 <div class="wrap">
 
   <div class="banner">
-    ⚠️ <b>总前提</b>：这些后台操作（Cloudflare / GSC / Bing / GA）需要你本人登录账号点击，贾维斯无法代点。
-    但仓库侧的文件（IndexNow 密钥、注入/提交脚本）已经备好，你 push 即生效。
-    当前状态：全站 24 页仍挂载<b>主站 GA <code>G-68HRE7BJFK</code></b>，必须换成 pet 独立 ID。
+    ⚠️ <b>总前提</b>：后台操作（Cloudflare / GSC / Bing / GA）需你本人登录点击，贾维斯无法代点。
+    仓库侧文件（IndexNow 密钥、注入/提交脚本）已备好，push 即生效。
+    当前全站 24 页仍挂<b>主站 GA <code>G-68HRE7BJFK</code></b>，必须换 pet 独立 ID。
+  </div>
+
+  <div class="plan">
+    📋 <b>免费版能力对照（你"没有"的那些是付费，直接跳过，不用管）</b><br>
+    ✅ 免费版<b>有</b>：Security Level（关 Under Attack）、<b>5 条 WAF Custom Rules</b>、Bot Fight Mode 开关。<br>
+    <span class="no">✖ 免费版没有</span>（我上版手册写超纲了，抱歉）：Super Bot Fight Mode、AI Crawl Control、<b>用 Skip 绕过 Bot Fight Mode</b>、按 Bot Score 精细放行。<br>
+    👉 所以正确姿势是：<b>关掉 Bot Fight Mode + 用 WAF Allow 规则放行</b>，而不是去碰上面那些付费功能。
   </div>
 
   <!-- 模块一 -->
   <div class="mod">
-    <h2>① Cloudflare — 放行搜索引擎与 AI 爬虫</h2>
+    <h2>① Cloudflare（免费版适用）— 让爬虫拿到 200，而不是被 JS 挑战挡掉</h2>
     <div class="body">
-      <p><span class="tag t-warn">你有终极权限</span> 目标：让 Googlebot / Bingbot / GPTBot / ClaudeBot / PerplexityBot 拿到 200，而不是 403/000（之前抓取频繁超时就是这个原因）。</p>
+      <p><span class="tag t-warn">免费版重点</span> 目标：Googlebot / Bingbot / GPTBot / ClaudeBot / PerplexityBot 都能正常抓取。你之前抓取频繁 000/403，<b>最大嫌疑是免费版 Bot Fight Mode 在误伤爬虫</b>。</p>
 
       <div class="step"><div class="num">1</div><div><b>关掉 Under Attack 模式</b><br>
-        旧版 UI：<span class="path">Overview</span> 右侧 <b>"I'm Under Attack"</b> 开关 → 关掉。<br>
-        新版 UI：<span class="path">Security → Settings → Security Level</span>，从 <b>"I'm Under Attack"</b> 调到 <b>"Medium"</b>（或 "Essentially Off"）。</div></div>
+        <span class="path">Security → Settings → Security Level</span>，从 <b>"I'm Under Attack"</b> 调到 <b>"Medium"</b>（或 "Essentially Off"）。<br>
+        <span class="note">如果你从没开过 Under Attack，这步就是确认它没开着。</span></div></div>
 
-      <div class="step"><div class="num">2</div><div><b>建 WAF 自定义规则放行爬虫 UA</b><br>
+      <div class="step"><div class="num">2</div><div><b>🔴 关键：关闭 Bot Fight Mode（免费版不可配置，开着必误伤）</b><br>
+        <span class="path">Security → Settings</span> → 顶部过滤选 <b>"Bot traffic"</b> → 找到 <b>Bot Fight Mode</b> → <b>关掉（Off）</b>。<br>
+        <div class="danger">为什么必须关：免费版 Bot Fight Mode 不能自定义、也<b>不能用规则 Skip 绕过</b>。它会对未经验证的爬虫（GPTBot / ClaudeBot / PerplexityBot）甚至 Googlebot 发起 JS 挑战，爬虫完成不了就等于被墙；实测有站点因此 Google 收录几天内暴跌。这正是你之前抓 pet 站出现 000/403 的最可能根因。<b>关掉它，比写任何规则都重要。</b></div></div></div>
+
+      <div class="step"><div class="num">3</div><div><b>用 WAF Custom Rule 放行爬虫 UA（免费版有 5 条，足够）</b><br>
         <span class="path">Security → WAF → Custom rules → Create rule</span><br>
-        规则名：<code>Allow good bots</code><br>
-        <b>When</b>（OR 组合）：<br>
-        &nbsp;&nbsp;• User Agent <code>contains</code> <code>Googlebot</code><br>
-        &nbsp;&nbsp;• User Agent <code>contains</code> <code>bingbot</code><br>
-        &nbsp;&nbsp;• User Agent <code>contains</code> <code>GPTBot</code><br>
-        &nbsp;&nbsp;• User Agent <code>contains</code> <code>ClaudeBot</code><br>
-        &nbsp;&nbsp;• User Agent <code>contains</code> <code>PerplexityBot</code><br>
-        &nbsp;&nbsp;• User Agent <code>contains</code> <code>Applebot</code> / <code>Google-Extended</code><br>
-        <b>Action</b>：<code>Allow</code>，并勾选 <b>Skip → 现有 WAF 规则 / 速率限制 / Bot Fight Mode</b>（否则仍可能被拦）。<br>
-        → <b>Deploy</b>。</div></div>
+        规则名：<code>Allow search & AI crawlers</code><br>
+        <b>When</b>（OR 组合，字段 User Agent）：<br>
+        &nbsp;&nbsp;• contains <code>Googlebot</code> &nbsp; • contains <code>bingbot</code> &nbsp; • contains <code>GPTBot</code><br>
+        &nbsp;&nbsp;• contains <code>ClaudeBot</code> &nbsp; • contains <code>PerplexityBot</code> &nbsp; • contains <code>Applebot</code> / <code>Google-Extended</code><br>
+        <b>Action</b>：<code>Allow</code> → <b>Deploy</b>。<br>
+        <span class="note">免费版 Bot Fight Mode 已关（第 2 步），这里 Allow 足够让 AI 爬虫通过；Googlebot/Bingbot 本身是"已验证爬虫"本就豁免，加这条是双保险。</span></div></div>
 
-      <div class="step"><div class="num">3</div><div><b>（增强，防 UA 伪造）按 ASN 放行</b><br>
-        再建一条规则 <code>Allow search engines by ASN</code>：<br>
-        &nbsp;&nbsp;• AS Num <code>equals</code> <code>15169</code>（Google）<br>
-        &nbsp;&nbsp;• AS Num <code>equals</code> <code>8075</code>（Microsoft / Bing）<br>
-        Action：<code>Allow</code> + Skip 同上。<br>
-        <span class="note">免费版 Bot Fight Mode 无法逐类放行 AI 爬虫，靠第 2 步的 UA 规则兜底即可。</span></div></div>
-
-      <div class="step"><div class="num">4</div><div><b>本地验证（关键）</b> — 在你电脑的终端跑：
-        <div class="verify">curl -A "Googlebot" -I https://pet.goods-infinite.com/
-curl -A "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)" -I https://pet.goods-infinite.com/
-curl -A "GPTBot" -I https://pet.goods-infinite.com/</div>
-        期望：每条都返回 <code>HTTP/2 200</code>，且出现 <code>cf-cache-status: HIT</code> / <code>server: cloudflare</code>。
-        若仍 403/000，说明 WAF 规则没覆盖到，回第 2 步复查。</div></div>
+      <div class="step"><div class="num">4</div><div><b>本地验证（最关键的一步）</b> — 在你电脑终端跑：
+        <div class="verify">curl -sSI -A "Googlebot" https://pet.goods-infinite.com/ | grep -iE "HTTP/|cf-mitigated|server:"
+curl -sSI -A "GPTBot" https://pet.goods-infinite.com/ | grep -iE "HTTP/|cf-mitigated"</div>
+        期望：<code>HTTP/2 200</code>，且<b>不要</b>出现 <code>cf-mitigated: challenge</code>。<br>
+        若仍 403 / 出现 challenge → 说明 Bot Fight Mode 没关干净或 WAF 还有拦截规则，回第 2 步复查。</div></div>
     </div>
   </div>
 
@@ -99,7 +100,7 @@ curl -A "GPTBot" -I https://pet.goods-infinite.com/</div>
         URL：<code>pet.goods-infinite.com</code>，流名称 <code>pet prod</code> → 复制得到的 <b>Measurement ID（G-XXXXXXX）</b>。</div></div>
       <div class="step"><div class="num">3</div><div><b>全站替换（脚本已备好）</b><br>
         在仓库根目录终端执行：<div class="verify">python tools/inject_ga4.py . G-你的新ID --apply</div>
-        脚本会替换全部 24 页里的 <code>G-68HRE7BJFK</code>（每页 2 处）→ 新 ID，<code>--apply</code> 前可先 dry-run 预览。<br>
+        脚本替换全部 24 页里的 <code>G-68HRE7BJFK</code>（每页 2 处）→ 新 ID，<code>--apply</code> 前可先 dry-run 预览。<br>
         <span class="note">⚠️ 若文章 HTML 由 <code>../build_pet_site.py</code> 生成，必须同时改生成器模板，否则 regenerate 后改动被覆盖。</span></div></div>
       <div class="step"><div class="num">4</div><div><b>（可选）主站 GA 排除 pet 流量</b><br>
         在 <code>G-68HRE7BJFK</code> 里建"流量过滤 → 排除 → 主机名 不含 pet.goods-infinite.com"，保持主站数据干净。</div></div>
@@ -131,7 +132,7 @@ curl -A "GPTBot" -I https://pet.goods-infinite.com/</div>
       <div class="step"><div class="num">3</div><div><b>IndexNow 密钥已生成</b><br>
         仓库根已放 <code>indexnow-&lt;随机key&gt;.txt</code>（内容是 key 本身）。部署后确认可访问：<br>
         <code>https://pet.goods-infinite.com/indexnow-&lt;key&gt;.txt</code><br>
-        <span class="note">主站曾遇 Cloudflare WAF 403 导致 IndexNow 失败 —— 模块①放行 Bingbot 后一般即恢复。</span></div></div>
+        <span class="note">主站曾遇 Cloudflare WAF 403 导致 IndexNow 失败 —— 模块①放行 Bingbot + 关 Bot Fight Mode 后一般即恢复。</span></div></div>
       <div class="step"><div class="num">4</div><div><b>推送（脚本已备好）</b><br>
         首次全量：<div class="verify">python tools/submit_indexnow.py .</div>
         之后仅推改动页：<div class="verify">python tools/submit_indexnow.py https://pet.goods-infinite.com/about/ https://pet.goods-infinite.com/medical-review/</div>
@@ -140,13 +141,13 @@ curl -A "GPTBot" -I https://pet.goods-infinite.com/</div>
   </div>
 
   <div class="done">
-    <h3>✅ 做完这 4 步后的效果</h3>
+    <h3>✅ 做完后的效果</h3>
     <p style="margin:0">
-      ① 爬虫 200 不再被拦 → SEO/GEO 才真正生效；<br>
+      ① 爬虫 200 不再被拦（<b>关 Bot Fight Mode 是关键</b>）→ SEO/GEO 才真正生效；<br>
       ② pet 流量独立计量，不再混进主站报表；<br>
       ③ GSC/Bing 各自独立监控收录；<br>
       ④ 新内容上线被搜索引擎秒级发现（IndexNow）。<br>
-      <b>全部 push 后，回到模块①第 4 步的 curl 验证，确认 200 即大功告成。</b>
+      <b>全部 push 后，回到模块①第 4 步的 curl 验证，确认 200 且无 challenge 即大功告成。</b>
     </p>
   </div>
 
