@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pet.goods-infinite.com · Cloudflare/GSC/Bing/IndexNow 实操手册</title>
+<style>
+  :root{
+    --teal:#0e8f8b; --teal-d:#0a6b68; --coral:#ff7a59; --ink:#1d2b2a;
+    --bg:#f6f4ef; --card:#fff; --line:#e3ded4; --mut:#6b7a78; --ok:#1f9d55; --warn:#c8761a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.65}
+  header{background:linear-gradient(120deg,var(--teal),var(--teal-d));color:#fff;padding:30px 24px}
+  header h1{margin:0 0 6px;font-size:23px}
+  header p{margin:0;opacity:.92;font-size:14px}
+  .wrap{max-width:980px;margin:0 auto;padding:24px 18px 60px}
+  .banner{background:#fff7ed;border:1px solid #f3d9bf;color:#8a4b12;padding:14px 16px;border-radius:10px;margin:18px 0;font-size:14px}
+  .mod{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:18px 0;overflow:hidden}
+  .mod h2{margin:0;background:#eef6f5;padding:14px 18px;font-size:17px;color:var(--teal-d);border-bottom:1px solid var(--line)}
+  .mod .body{padding:8px 18px 18px}
+  .step{display:flex;gap:12px;padding:11px 0;border-bottom:1px dashed var(--line)}
+  .step:last-child{border-bottom:0}
+  .num{flex:0 0 26px;height:26px;border-radius:50%;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+  .step b{color:var(--teal-d)}
+  code{background:#f0ede6;padding:2px 6px;border-radius:5px;font-size:13px;font-family:ui-monospace,Menlo,Consolas,monospace}
+  .path{background:#eef6f5;color:var(--teal-d);padding:2px 7px;border-radius:5px;font-size:13px;font-weight:600}
+  .tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:20px;margin-right:6px}
+  .t-ok{background:#e7f6ee;color:var(--ok)} .t-warn{background:#fdf0e0;color:var(--warn)}
+  .verify{background:#06303a;color:#7fe3d8;padding:12px 14px;border-radius:8px;font-family:ui-monospace,monospace;font-size:13px;white-space:pre-wrap;margin:10px 0}
+  .note{font-size:13px;color:var(--mut);margin:6px 0 0}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+  .done{margin-top:26px;background:#e7f6ee;border:1px solid #bfe6cd;color:#1f6b3f;padding:16px;border-radius:12px}
+  .done h3{margin:0 0 8px}
+</style>
+</head>
+<body>
+<header>
+  <h1>🛠️ pet.goods-infinite.com · SEO/GEO 部署实操手册</h1>
+  <p>Cloudflare 放行爬虫 · 独立 GA4 · GSC 独立属性 · Bing WM · IndexNow — 分步可照做</p>
+</header>
+<div class="wrap">
+
+  <div class="banner">
+    ⚠️ <b>总前提</b>：这些后台操作（Cloudflare / GSC / Bing / GA）需要你本人登录账号点击，贾维斯无法代点。
+    但仓库侧的文件（IndexNow 密钥、注入/提交脚本）已经备好，你 push 即生效。
+    当前状态：全站 24 页仍挂载<b>主站 GA <code>G-68HRE7BJFK</code></b>，必须换成 pet 独立 ID。
+  </div>
+
+  <!-- 模块一 -->
+  <div class="mod">
+    <h2>① Cloudflare — 放行搜索引擎与 AI 爬虫</h2>
+    <div class="body">
+      <p><span class="tag t-warn">你有终极权限</span> 目标：让 Googlebot / Bingbot / GPTBot / ClaudeBot / PerplexityBot 拿到 200，而不是 403/000（之前抓取频繁超时就是这个原因）。</p>
+
+      <div class="step"><div class="num">1</div><div><b>关掉 Under Attack 模式</b><br>
+        旧版 UI：<span class="path">Overview</span> 右侧 <b>"I'm Under Attack"</b> 开关 → 关掉。<br>
+        新版 UI：<span class="path">Security → Settings → Security Level</span>，从 <b>"I'm Under Attack"</b> 调到 <b>"Medium"</b>（或 "Essentially Off"）。</div></div>
+
+      <div class="step"><div class="num">2</div><div><b>建 WAF 自定义规则放行爬虫 UA</b><br>
+        <span class="path">Security → WAF → Custom rules → Create rule</span><br>
+        规则名：<code>Allow good bots</code><br>
+        <b>When</b>（OR 组合）：<br>
+        &nbsp;&nbsp;• User Agent <code>contains</code> <code>Googlebot</code><br>
+        &nbsp;&nbsp;• User Agent <code>contains</code> <code>bingbot</code><br>
+        &nbsp;&nbsp;• User Agent <code>contains</code> <code>GPTBot</code><br>
+        &nbsp;&nbsp;• User Agent <code>contains</code> <code>ClaudeBot</code><br>
+        &nbsp;&nbsp;• User Agent <code>contains</code> <code>PerplexityBot</code><br>
+        &nbsp;&nbsp;• User Agent <code>contains</code> <code>Applebot</code> / <code>Google-Extended</code><br>
+        <b>Action</b>：<code>Allow</code>，并勾选 <b>Skip → 现有 WAF 规则 / 速率限制 / Bot Fight Mode</b>（否则仍可能被拦）。<br>
+        → <b>Deploy</b>。</div></div>
+
+      <div class="step"><div class="num">3</div><div><b>（增强，防 UA 伪造）按 ASN 放行</b><br>
+        再建一条规则 <code>Allow search engines by ASN</code>：<br>
+        &nbsp;&nbsp;• AS Num <code>equals</code> <code>15169</code>（Google）<br>
+        &nbsp;&nbsp;• AS Num <code>equals</code> <code>8075</code>（Microsoft / Bing）<br>
+        Action：<code>Allow</code> + Skip 同上。<br>
+        <span class="note">免费版 Bot Fight Mode 无法逐类放行 AI 爬虫，靠第 2 步的 UA 规则兜底即可。</span></div></div>
+
+      <div class="step"><div class="num">4</div><div><b>本地验证（关键）</b> — 在你电脑的终端跑：
+        <div class="verify">curl -A "Googlebot" -I https://pet.goods-infinite.com/
+curl -A "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)" -I https://pet.goods-infinite.com/
+curl -A "GPTBot" -I https://pet.goods-infinite.com/</div>
+        期望：每条都返回 <code>HTTP/2 200</code>，且出现 <code>cf-cache-status: HIT</code> / <code>server: cloudflare</code>。
+        若仍 403/000，说明 WAF 规则没覆盖到，回第 2 步复查。</div></div>
+    </div>
+  </div>
+
+  <!-- 模块二 -->
+  <div class="mod">
+    <h2>② 独立 GA4 — 别再共用主站 G-68HRE7BJFK</h2>
+    <div class="body">
+      <div class="step"><div class="num">1</div><div><b>建 pet 独立媒体资源</b><br>
+        <span class="path">analytics.google.com → Admin → Create Property</span><br>
+        名称填 <code>GoodsInfinite Pet (pet.goods-infinite.com)</code> → 时区选你所在时区 → 下一步。</div></div>
+      <div class="step"><div class="num">2</div><div><b>建 Web 数据流</b><br>
+        <span class="path">Setup Assistant → 数据流 → Web</span><br>
+        URL：<code>pet.goods-infinite.com</code>，流名称 <code>pet prod</code> → 复制得到的 <b>Measurement ID（G-XXXXXXX）</b>。</div></div>
+      <div class="step"><div class="num">3</div><div><b>全站替换（脚本已备好）</b><br>
+        在仓库根目录终端执行：<div class="verify">python tools/inject_ga4.py . G-你的新ID --apply</div>
+        脚本会替换全部 24 页里的 <code>G-68HRE7BJFK</code>（每页 2 处）→ 新 ID，<code>--apply</code> 前可先 dry-run 预览。<br>
+        <span class="note">⚠️ 若文章 HTML 由 <code>../build_pet_site.py</code> 生成，必须同时改生成器模板，否则 regenerate 后改动被覆盖。</span></div></div>
+      <div class="step"><div class="num">4</div><div><b>（可选）主站 GA 排除 pet 流量</b><br>
+        在 <code>G-68HRE7BJFK</code> 里建"流量过滤 → 排除 → 主机名 不含 pet.goods-infinite.com"，保持主站数据干净。</div></div>
+    </div>
+  </div>
+
+  <!-- 模块三 -->
+  <div class="mod">
+    <h2>③ GSC — pet 独立属性（不是主站子目录）</h2>
+    <div class="body">
+      <div class="step"><div class="num">1</div><div><span class="path">search.google.com/search-console → 添加属性</span><br>
+        选 <b>"网址前缀"</b> 类型，输入 <code>https://pet.goods-infinite.com/</code>（独立属性，不要把 pet 当主站下的目录）。</div></div>
+      <div class="step"><div class="num">2</div><div><b>验证所有权（二选一）</b><br>
+        • <b>推荐 DNS TXT</b>：在 pet.goods-infinite.com 的 DNS 加一条 TXT 记录，值用 Google 给的那串 → 不用动仓库、换服务器也不失效。<br>
+        • 或 HTML 文件验证：下载 <code>googleXXXX.html</code> 放到仓库根目录 push 上线即可。</div></div>
+      <div class="step"><div class="num">3</div><div><b>提交 sitemap</b><br>
+        <span class="path">左侧 Sitemaps → 添加</span>：<code>https://pet.goods-infinite.com/sitemap.xml</code>（已是 23 条，含新增 3 页）。</div></div>
+      <div class="step"><div class="num">4</div><div>等 1–2 天看 <span class="path">Coverage / 索引数</span>，确认 23 页逐步被收录。</div></div>
+    </div>
+  </div>
+
+  <!-- 模块四 -->
+  <div class="mod">
+    <h2>④ Bing Webmaster Tools + IndexNow</h2>
+    <div class="body">
+      <div class="step"><div class="num">1</div><div><span class="path">bing.com/webmasters → 添加站点</span> <code>pet.goods-infinite.com</code><br>
+        验证同 GSC：DNS TXT / XML 文件 / Meta 标签 任选。</div></div>
+      <div class="step"><div class="num">2</div><div><b>提交 sitemap</b>：<span class="path">Sitemaps</span> 添加 <code>https://pet.goods-infinite.com/sitemap.xml</code>。</div></div>
+      <div class="step"><div class="num">3</div><div><b>IndexNow 密钥已生成</b><br>
+        仓库根已放 <code>indexnow-&lt;随机key&gt;.txt</code>（内容是 key 本身）。部署后确认可访问：<br>
+        <code>https://pet.goods-infinite.com/indexnow-&lt;key&gt;.txt</code><br>
+        <span class="note">主站曾遇 Cloudflare WAF 403 导致 IndexNow 失败 —— 模块①放行 Bingbot 后一般即恢复。</span></div></div>
+      <div class="step"><div class="num">4</div><div><b>推送（脚本已备好）</b><br>
+        首次全量：<div class="verify">python tools/submit_indexnow.py .</div>
+        之后仅推改动页：<div class="verify">python tools/submit_indexnow.py https://pet.goods-infinite.com/about/ https://pet.goods-infinite.com/medical-review/</div>
+        <span class="note">⚠️ IndexNow 是"增量即时推送"，别每次部署狂推全量（会被限流）。</span></div></div>
+    </div>
+  </div>
+
+  <div class="done">
+    <h3>✅ 做完这 4 步后的效果</h3>
+    <p style="margin:0">
+      ① 爬虫 200 不再被拦 → SEO/GEO 才真正生效；<br>
+      ② pet 流量独立计量，不再混进主站报表；<br>
+      ③ GSC/Bing 各自独立监控收录；<br>
+      ④ 新内容上线被搜索引擎秒级发现（IndexNow）。<br>
+      <b>全部 push 后，回到模块①第 4 步的 curl 验证，确认 200 即大功告成。</b>
+    </p>
+  </div>
+
+</div>
+</body>
+</html>
